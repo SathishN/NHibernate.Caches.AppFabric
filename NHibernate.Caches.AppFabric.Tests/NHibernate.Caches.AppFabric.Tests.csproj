@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>NHibernate.Caches.AppFabric.Tests</RootNamespace>
     <AssemblyName>NHibernate.Caches.AppFabric.Tests</AssemblyName>
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\NHibernate.Caches.AppFabric\</SolutionDir>
     <RestorePackages>true</RestorePackages>
