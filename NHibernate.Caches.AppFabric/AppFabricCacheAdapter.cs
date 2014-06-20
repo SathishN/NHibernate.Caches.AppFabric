@@ -53,10 +53,14 @@ namespace NHibernate.Caches.AppFabric
     {
         #region Member variables
 
+        private static readonly IInternalLogger log = LoggerProvider.LoggerFor(typeof(AppFabricCacheAdapter));
+
         private readonly ISerializationProvider _serializationProvider;
 
         private readonly IDictionary<string, DataCacheLockHandle> _lockHandles;
         private readonly DataCache _locksCache;
+
+        private DataCache _cache = null;
 
         #endregion
 
@@ -66,7 +70,7 @@ namespace NHibernate.Caches.AppFabric
         /// Creates an instance of the class.
         /// </summary>
         /// <param name="regionName">The name of the NHibernate region the adapter is for.</param>
-        public AppFabricCacheAdapter(string regionName)
+        protected AppFabricCacheAdapter(string regionName)
         {
             RegionName = regionName;
 
@@ -78,8 +82,6 @@ namespace NHibernate.Caches.AppFabric
             }
             _lockHandles = new Dictionary<string, DataCacheLockHandle>();
             _locksCache  = AppFabricCacheFactory.Instance.GetCache(LocksRegionName, true);
-
-            Cache = GetCache(AppFabricCacheFactory.Instance);
         }
 
         #endregion
@@ -111,8 +113,12 @@ namespace NHibernate.Caches.AppFabric
         /// </summary>
         protected internal virtual DataCache Cache
         {
-            get;
-            set;
+            get
+            {
+                _cache = _cache ?? GetCache(AppFabricCacheFactory.Instance);
+
+                return _cache;
+            }
         }
 
         /// <summary>
@@ -152,6 +158,11 @@ namespace NHibernate.Caches.AppFabric
         /// <exception cref="CacheException"></exception>
         public virtual void Clear()
         {
+            if (log.IsDebugEnabled)
+            {
+                log.DebugFormat("Clearing cache region {0}", AppFabricRegionName);
+            }
+
             try
             {
                 Cache.ClearRegion(AppFabricRegionName);
@@ -169,6 +180,11 @@ namespace NHibernate.Caches.AppFabric
         /// <exception cref="CacheException"></exception>
         public virtual void Destroy()
         {
+            if (log.IsDebugEnabled)
+            {
+                log.DebugFormat("Removing cache region {0}", AppFabricRegionName);
+            }
+
             try
             {
                 Cache.RemoveRegion(AppFabricRegionName);
@@ -189,6 +205,11 @@ namespace NHibernate.Caches.AppFabric
         {
             if (key == null)
                 return null;
+
+            if (log.IsDebugEnabled)
+            {
+                log.DebugFormat("Fetching object '{0}' from the cache region {1}.", key, AppFabricRegionName);
+            }
 
             try
             {
@@ -230,7 +251,7 @@ namespace NHibernate.Caches.AppFabric
         private void Lock(object key, bool createMissingRegion)
         {
             DataCacheLockHandle lockHandle = null;
-
+            
             try
             {
                 _locksCache.GetAndLock(key.ToString(), TimeSpan.FromMilliseconds(Timeout), out lockHandle, LocksRegionName, true);
@@ -289,6 +310,11 @@ namespace NHibernate.Caches.AppFabric
             if (value == null)
                 throw new ArgumentNullException("value", "null value not allowed");
 
+            if (log.IsDebugEnabled)
+            {
+                log.DebugFormat("Adding or Updating value of key '{0}' to '{1}'.", key, value);
+            }
+
             try
             {
                 if (_serializationProvider != null)
@@ -317,12 +343,14 @@ namespace NHibernate.Caches.AppFabric
             if (key == null)
                 throw new ArgumentNullException("key");
 
+            if (log.IsDebugEnabled)
+            {
+                log.DebugFormat("Removing item with key '{0}' from Cache {1} .", key, AppFabricRegionName);
+            }
+
             try
             {
-                if (Get(key.ToString()) != null)
-                {
                     Cache.Remove(key.ToString(),AppFabricRegionName);
-                }
             }
             catch (DataCacheException ex)
             {
@@ -395,6 +423,12 @@ namespace NHibernate.Caches.AppFabric
         /// <param name="callback">A call back to call once the region has been created.</param>
         private void CreateRegion(DataCache cache, string regionName, Action<bool> callback)
         {
+
+            if (log.IsDebugEnabled)
+            {
+                log.DebugFormat("Creating cache region {1}", regionName);
+            }
+
             try
             {
                 callback(cache.CreateRegion(regionName));

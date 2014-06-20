@@ -46,13 +46,13 @@ namespace NHibernate.Caches.AppFabric
     {
         #region Class variables
 
-        private static readonly AppFabricCacheFactory _instance = new AppFabricCacheFactory();
+        private static readonly IInternalLogger log = LoggerProvider.LoggerFor(typeof(AppFabricCacheFactory));
 
         #endregion
 
         #region Member variables
 
-        private DataCacheFactory _cacheCluster;
+        private readonly DataCacheFactory _cacheCluster;
 
         #endregion
 
@@ -83,7 +83,7 @@ namespace NHibernate.Caches.AppFabric
         {
             get
             {
-                return _instance;
+                return Nested.CacheFactoryInstance;
             }
         }
 
@@ -100,6 +100,11 @@ namespace NHibernate.Caches.AppFabric
         /// <returns>A data cache [client].</returns>
         public DataCache GetCache(string cacheName, bool useDefault = false)
         {
+            if (log.IsDebugEnabled)
+            {
+                log.DebugFormat("Get cache named {0}", cacheName);
+            }
+
             try
             {
                 return _cacheCluster.GetCache(cacheName);
@@ -107,12 +112,27 @@ namespace NHibernate.Caches.AppFabric
             catch (DataCacheException ex)
             {
                 if (ex.ErrorCode == DataCacheErrorCode.NamedCacheDoesNotExist && useDefault)
+                {
+                    if (log.IsDebugEnabled)
+                    {
+                        log.DebugFormat("{0} Cache doens't exists, using default cache", cacheName);
+                    }
                     return _cacheCluster.GetDefaultCache();
+                }
+
+                log.Error(ex.Message, ex);
 
                 throw;
             }
         }
 
         #endregion
+
+        class Nested
+        {
+            internal static readonly AppFabricCacheFactory CacheFactoryInstance = new AppFabricCacheFactory();
+
+            static Nested() { }
+        }
     }
 }

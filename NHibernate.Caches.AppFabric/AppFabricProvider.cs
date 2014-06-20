@@ -45,6 +45,8 @@ namespace NHibernate.Caches.AppFabric
     /// </summary>
     public class AppFabricProvider : ICacheProvider
     {
+        private static readonly IInternalLogger log = LoggerProvider.LoggerFor(typeof(AppFabricProvider));
+
         /// <summary>
         /// Configure the cache
         /// </summary>
@@ -53,6 +55,11 @@ namespace NHibernate.Caches.AppFabric
         /// <returns></returns>
         public ICache BuildCache(string regionName, IDictionary<string, string> properties)
         {
+            if (log.IsDebugEnabled)
+            {
+                log.DebugFormat("Creating cache region named {0}", regionName);
+            }
+
             return AppFabricCacheAdapterFactory.Create(regionName);
         }
 
@@ -73,7 +80,10 @@ namespace NHibernate.Caches.AppFabric
         public void Start(IDictionary<string, string> properties)
         {
             if (AppFabricProviderSettings.Settings == null)
+            {
+                log.Error("Missing required AppFabricProvider configuration section");
                 throw new ConfigurationErrorsException("Missing required AppFabricProvider configuration section");
+            }
         }
 
         /// <summary>

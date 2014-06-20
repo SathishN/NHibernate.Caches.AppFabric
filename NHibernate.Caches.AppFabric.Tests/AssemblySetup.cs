@@ -47,6 +47,8 @@ namespace NHibernate.Caches.AppFabric.Tests
         [SetUp]
         public void Setup()
         {
+            log4net.Config.XmlConfigurator.Configure();
+
             NHibernateSessionManager.Initialize();
 
             NHibernateSessionManager.OpenSession();

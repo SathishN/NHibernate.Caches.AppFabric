@@ -46,6 +46,8 @@ namespace NHibernate.Caches.AppFabric.Adapters
     {
         #region Member variables
 
+        private static readonly IInternalLogger log = LoggerProvider.LoggerFor(typeof(AppFabricCacheRegionAdapter));
+
         private readonly string _regionName;
 
         #endregion
@@ -83,6 +85,11 @@ namespace NHibernate.Caches.AppFabric.Adapters
 
         protected internal override DataCache GetCache(IAppFabricCacheFactory cacheFactory)
         {
+            if (log.IsDebugEnabled)
+            {
+                log.DebugFormat("Get Cache named {0}", RegionName);
+            }
+
             return cacheFactory.GetCache(AppFabricProviderSettings.Settings.RegionCacheTypeCacheName, true);
         }
 

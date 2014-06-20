@@ -44,6 +44,8 @@ namespace NHibernate.Caches.AppFabric
     /// </summary>
     public static class AppFabricCacheAdapterFactory
     {
+        private static readonly IInternalLogger log = LoggerProvider.LoggerFor(typeof(AppFabricCacheAdapterFactory));
+
         #region Methods
 
         /// <summary>
@@ -54,7 +56,7 @@ namespace NHibernate.Caches.AppFabric
         public static AppFabricCacheAdapter Create(string regionName)
         {
             if (string.IsNullOrEmpty(regionName))
-                throw new ArgumentNullException("A region name must be specified");
+                throw new ArgumentNullException("regionName", "A region name must be specified");
 
             switch (AppFabricProviderSettings.Settings.CacheType)
             {
