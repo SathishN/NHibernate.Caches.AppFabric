@@ -49,6 +49,8 @@ namespace NHibernate.Caches.AppFabric.Tests
         {
             log4net.Config.XmlConfigurator.Configure();
 
+            HibernatingRhinos.Profiler.Appender.NHibernate.NHibernateProfiler.Initialize();
+
             NHibernateSessionManager.Initialize();
 
             NHibernateSessionManager.OpenSession();
